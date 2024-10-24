@@ -7,11 +7,12 @@ const toa = Toaster.create({
 
 
 })
-function App() {
+function App(){
   const[users,setUsers] = useState([]);
   const[nname,setnname] = useState("");
   const[nemail,setnemail] = useState("");
   const[nweb,setnweb] = useState("");
+  console.log(users);
   useEffect(()=>{
     fetch('https://jsonplaceholder.typicode.com/users')
     .then((response) => response.json())
@@ -19,7 +20,7 @@ function App() {
 
   },[])
 
-  function addfunc(){
+  function addfunc (){
     const name = nname.trim();
     const email = nemail.trim();
     const website = nweb.trim();
@@ -44,7 +45,7 @@ function App() {
         setUsers([...users,data])
         toa.show({
           message:"user added succesfully",
-          intent:"success",
+          intent:"primary",
           timeout:2000
         });
         setnname("")
@@ -54,6 +55,66 @@ function App() {
     }
 
   }
+
+  function funcupd(id,key,value){
+    setUsers(users => {
+      return users.map(user => {
+        return user.id === id ? {...user,[key]:value}:user
+      })
+    })
+
+  }
+  function upd(id){
+    const details = users.find((user)=>user.id === id);
+    fetch(`https://jsonplaceholder.typicode.com/users/${id}`,
+      {
+        method:"PUT",
+        body:JSON.stringify(details),
+        headers:{
+          "Content-Type":"application/json;charset=UTF-8"
+        }
+
+
+      }
+
+    ).then((response)=>response.json())
+    .then((data)=>{
+      toa.show({
+        message:"user updated succesfully",
+        intent:"success",
+        timeout:2000
+      });
+
+    })
+
+  }
+
+  function del(id){
+
+
+  fetch(`https://jsonplaceholder.typicode.com/users/${id}`,
+      {
+        method:"DELETE",
+       
+
+
+      }
+
+    ).then((response)=>response.json())
+    .then((data)=>{
+      setUsers((users) => {
+        return users.filter((user => user.id !== id))
+      })
+      toa.show({
+        message:"user deleted succesfully",
+        intent:"danger",
+        timeout:2000
+      });
+
+    })
+
+  }
+
   return (
     <div className="App">
       <table className="bp4-html-table modifier">
@@ -66,19 +127,19 @@ function App() {
           <th>Action</th>
           </tr>
           
-        </thead>
+        </thead>    
         <tbody>
-          {users.map(user =>
+          {users.map((user) =>{
           <tr key={user.id}>
             <td>{user.id}</td>
-            <td><EditableText value={user.name}/></td>
-            <td><EditableText value={user.email}/></td>
-            <td><EditableText value={user.website}/></td>
+            <td><EditableText onChange={value => funcupd(user.id,"name",value)} value={user.name}/></td>
+            <td><EditableText onChange={value => funcupd(user.id,"email",value)} value={user.email}/></td>
+            <td><EditableText onChange={value => funcupd(user.id,"website",value)} value={user.website}/></td>
 
-            <td><Button intent="success">UPDATE</Button>
-            <Button intent="danger">DELETE</Button></td>
+            <td><Button intent="success" onClick={() => {upd(user.id)}}>UPDATE</Button>
+            <Button intent="danger" onClick={() => del(user.id)}>DELETE</Button></td>
           </tr>
-          )}  
+         } )}  
         </tbody>
 
         <tfoot>
@@ -115,7 +176,7 @@ function App() {
 
           </td>
           <td>
-            <Button intent="primary" onClick={addfunc}>Add</Button>
+            <Button intent="primary" onClick={addfunc }>Add</Button>
           </td>
           
         </tfoot>
